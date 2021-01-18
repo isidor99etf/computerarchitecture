@@ -1,0 +1,7 @@
+:CONST
+    TEST DL 100
+:CODE
+    mov rax, 5
+    mov rcx, [TEST]
+    mov rdx, TEST
+    mov rbx,rax

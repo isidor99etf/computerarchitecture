@@ -1,0 +1,16 @@
+:const
+    PI cd 3.141592
+:def
+    r resd
+    o resd
+:code
+    mov rax, r
+    inp rax
+    mov o, 1
+    mov rax, [o]
+    mul rax, 2
+    mul rax, r
+    mul rax, PI
+    out rax
+    out o
+    end
