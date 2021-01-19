@@ -1,7 +1,9 @@
 :CONST
     TEST DL 100
+:DEF
+    a resl
 :CODE
-    mov rax, 5
-    mov rcx, [TEST]
-    mov rdx, TEST
-    mov rbx,rax
+
+    mov rax, 1
+    mov rbx, -1
+    or rbx, rax

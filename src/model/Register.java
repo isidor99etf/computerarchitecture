@@ -29,7 +29,7 @@ public class Register {
         registers.put(REGISTER_MOD, new Register(REGISTER_MOD));
     }
 
-    public Register(String name) {
+    private Register(String name) {
         this.name = name;
         bytes = new byte[8];
     }

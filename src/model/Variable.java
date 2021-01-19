@@ -1,15 +1,20 @@
 package model;
 
+import java.nio.ByteBuffer;
+
 public class Variable {
+
+    private static long addressPointer = 0;
 
     private final String name;
     private byte[] value;
-    private final int address;
+    private final long address;
 
     public Variable(String name, byte[] value) {
         this.name = name;
         this.value = value;
-        address = hashCode();
+        address = addressPointer;
+        addressPointer += 8;
     }
 
     public String getName() { return name; }
@@ -18,7 +23,9 @@ public class Variable {
 
     public void setValue(byte[] value) { this.value = value; }
 
-    public int getAddress() { return address; }
+    public long getLongValue() { return ByteBuffer.wrap(value).getLong(); }
+
+    public long getAddress() { return address; }
 
     @Override
     public int hashCode() {
@@ -27,6 +34,6 @@ public class Variable {
 
     @Override
     public String toString() {
-        return String.format("0x%016x", address) + ": " + name + " ";
+        return String.format("0x%08x", address) + ": " + name + " ";
     }
 }
