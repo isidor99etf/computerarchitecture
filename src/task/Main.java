@@ -2,6 +2,7 @@ package task;
 
 import constants.Constants;
 import constants.InstructionType;
+import constants.Messages;
 import model.Instruction;
 import model.Register;
 import model.Variable;
@@ -10,19 +11,24 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class Main {
 
     private static final Logger LOGGER = Logger.getLogger(Main.class.getName());
     private static final HashMap<Long, Variable> memoryAddress = new HashMap<>(); // variable by address (hash code)
     private static final HashMap<String, Variable> memoryName = new HashMap<>(); // variable by name
+    private static final HashMap<String, Integer> labels = new HashMap<>(); // save label for jump instruction, map label on label line in code
 
     private static final Pattern numberPattern = Pattern.compile("-?\\d+");
     private static final Pattern bracketsPattern = Pattern.compile("\\[[a-zA-Z]+]");
+    private static final Pattern labelPattern = Pattern.compile("\\w+:");
     // private static final Pattern doublePattern = Pattern.compile("-?\\d+(\\.\\d+)?");
+
 
     public static void main(String[] args) {
 
@@ -36,14 +42,15 @@ public class Main {
                     FileInputStream inputStream = new FileInputStream(args[0]);
                     BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 
-                    String line;
-                    int lineNumber = 0;
                     int section = Constants.SECTION_UNDEFINED;
 
-                    while ((line = reader.readLine()) != null) {
+                    ArrayList<String> lines = (ArrayList<String>) reader.lines().collect(Collectors.toList());
+                    reader.close();
 
-                        line = line.trim();
-                        ++lineNumber;
+                    for (int i = 0; i < lines.size(); ++i) {
+
+                        String line = lines.get(i).trim();
+                        System.out.println(line);
 
                         if (line.isEmpty())
                             continue;
@@ -52,69 +59,72 @@ public class Main {
                         if (isSection(line)) {
                             section = checkSection(line, section);
                             if (section == Constants.SECTION_UNDEFINED) {
-                                exitWithErrorMessage(lineNumber, Constants.MESSAGE_WRONG_SYNTAX);
+                                exitWithErrorMessage(i + 1, Messages.MESSAGE_WRONG_SYNTAX);
                                 break;
                             }
+                        } else if (isLabel(line)) {
+                            labels.put(line.replace(":", ""), i);
                         } else {
 
                             // check which section is active
                             if (section == Constants.SECTION_CONST) {
                                 int response = sectionConst(line);
                                 if (response == Constants.EXIT_CODE_WRONG_SYNTAX)
-                                    exitWithErrorMessage(lineNumber, Constants.MESSAGE_WRONG_SYNTAX);
+                                    exitWithErrorMessage(i + 1, Messages.MESSAGE_WRONG_SYNTAX);
                                 else if (response == Constants.EXIT_CODE_UNKNOWN_DATA_TYPE)
-                                    exitWithErrorMessage(lineNumber, Constants.MESSAGE_UNKNOWN_DATA_TYPE);
+                                    exitWithErrorMessage(i + 1, Messages.MESSAGE_UNKNOWN_DATA_TYPE);
                                 else if (response == Constants.EXIT_CODE_WRONG_NUMBER_FORMAT)
-                                    exitWithErrorMessage(lineNumber, Constants.MESSAGE_WRONG_NUMBER_FORMAT);
+                                    exitWithErrorMessage(i + 1, Messages.MESSAGE_WRONG_NUMBER_FORMAT);
 
                             } else if (section == Constants.SECTION_DEF) {
                                 int response = sectionDefine(line);
                                 if (response == Constants.EXIT_CODE_WRONG_SYNTAX)
-                                    exitWithErrorMessage(lineNumber, Constants.MESSAGE_WRONG_SYNTAX);
+                                    exitWithErrorMessage(i + 1, Messages.MESSAGE_WRONG_SYNTAX);
                                 else if (response == Constants.EXIT_CODE_UNKNOWN_DATA_TYPE)
-                                    exitWithErrorMessage(lineNumber, Constants.MESSAGE_UNKNOWN_DATA_TYPE);
+                                    exitWithErrorMessage(i + 1, Messages.MESSAGE_UNKNOWN_DATA_TYPE);
 
                             } else if (section == Constants.SECTION_CODE) {
                                 String instructionText = getInstructionText(line).toLowerCase();
                                 if (Instruction.checkInstruction(instructionText)) {
                                     if (instructionText.equals(InstructionType.INSTRUCTION_ADD)) {
-                                        instructionAdd(line, lineNumber);
+                                        instructionAdd(line, i + 1);
                                     } else if (instructionText.equals(InstructionType.INSTRUCTION_SUB)) {
-                                        instructionSub(line, lineNumber);
+                                        instructionSub(line, i + 1);
                                     } else if (instructionText.equals(InstructionType.INSTRUCTION_MUL)) {
-                                        instructionMul(line, lineNumber);
+                                        instructionMul(line, i + 1);
                                     } else if (instructionText.equals(InstructionType.INSTRUCTION_DIV)) {
-                                        instructionDiv(line, lineNumber);
+                                        instructionDiv(line, i + 1);
                                     } else if (instructionText.equals(InstructionType.INSTRUCTION_AND)) {
-                                        instructionAnd(line, lineNumber);
+                                        instructionAnd(line, i + 1);
                                     } else if (instructionText.equals(InstructionType.INSTRUCTION_OR)) {
-                                        instructionOr(line, lineNumber);
+                                        instructionOr(line, i + 1);
                                     } else if (instructionText.equals(InstructionType.INSTRUCTION_NOT)) {
-                                        instructionNot(line, lineNumber);
+                                        instructionNot(line, i + 1);
                                     } else if (instructionText.equals(InstructionType.INSTRUCTION_MOV)) {
-                                        instructionMov(line, lineNumber);
+                                        instructionMov(line, i + 1);
                                     } else if (instructionText.equals(InstructionType.INSTRUCTION_SFL)) {
-                                        instructionSfl(line, lineNumber);
+                                        instructionSfl(line, i + 1);
                                     } else if (instructionText.equals(InstructionType.INSTRUCTION_SFR)) {
-                                        instructionSfr(line, lineNumber);
+                                        instructionSfr(line, i + 1);
                                     } else if (instructionText.equals(InstructionType.INSTRUCTION_CMP)) {
-                                        instructionCmp(line, lineNumber);
+                                        instructionCmp(line, i + 1);
                                     } else if (instructionText.equals(InstructionType.INSTRUCTION_JE)) {
-                                        instructionJe(line, lineNumber);
+                                        i = instructionJe(line, i + 1);
+                                        System.out.println(i);
                                     } else if (instructionText.equals(InstructionType.INSTRUCTION_JNE)) {
-                                        instructionJne(line, lineNumber);
+                                        i = instructionJne(line, i + 1);
                                     } else if (instructionText.equals(InstructionType.INSTRUCTION_JGE)) {
-                                        instructionJge(line, lineNumber);
+                                        i = instructionJge(line, i + 1);
                                     } else if (instructionText.equals(InstructionType.INSTRUCTION_JG)) {
-                                        instructionJg(line, lineNumber);
+                                        i = instructionJg(line, i + 1);
                                     } else if (instructionText.equals(InstructionType.INSTRUCTION_JLE)) {
-                                        instructionJle(line, lineNumber);
+                                        i = instructionJle(line, i + 1);
                                     } else if (instructionText.equals(InstructionType.INSTRUCTION_JL)) {
-                                        instructionJl(line, lineNumber);
+                                        i = instructionJl(line, i + 1);
                                     } else if (instructionText.equals(InstructionType.INSTRUCTION_INP)) {
-                                        instructionInp(line, lineNumber);
+                                        instructionInp(line, i + 1);
                                     } else if (instructionText.equals(InstructionType.INSTRUCTION_OUT)) {
-                                        instructionOut(line, lineNumber);
+                                        instructionOut(line, i + 1);
                                     } else {
                                         //
                                         System.out.println("No way!!!");
@@ -122,7 +132,7 @@ public class Main {
 
 
                                 } else
-                                    exitWithErrorMessage(lineNumber, Constants.MESSAGE_UNKNOWN_INSTRUCTION);
+                                    exitWithErrorMessage(i + 1, Messages.MESSAGE_UNKNOWN_INSTRUCTION);
                             }
                         }
                     }
@@ -149,6 +159,10 @@ public class Main {
         return line.toLowerCase().equals(Constants.TEXT_CONST) ||
                 line.toLowerCase().equals(Constants.TEXT_DEF) ||
                 line.toLowerCase().equals(Constants.TEXT_CODE);
+    }
+
+    private static boolean isLabel(String line) {
+        return labelPattern.matcher(line).matches();
     }
 
     private static int checkSection(String line, int section) {
@@ -250,15 +264,15 @@ public class Main {
                 else if (checkRegister(data[2]))
                     val2 = Register.registers.get(data[2]).getValue();
                 else {
-                    exitWithErrorMessage(lineNumber, Constants.MESSAGE_WRONG_SYNTAX);
+                    exitWithErrorMessage(lineNumber, Messages.MESSAGE_WRONG_SYNTAX);
                     return;
                 }
                 long result = val1 + val2;
                 Register.registers.get(data[1]).setValue(result, Constants.TYPE_NUMBER);
             } else
-                exitWithErrorMessage(lineNumber, Constants.MESSAGE_UNKNOWN_REGISTER);
+                exitWithErrorMessage(lineNumber, Messages.MESSAGE_UNKNOWN_REGISTER);
         } else
-            exitWithErrorMessage(lineNumber, Constants.MESSAGE_WRONG_SYNTAX);
+            exitWithErrorMessage(lineNumber, Messages.MESSAGE_WRONG_SYNTAX);
     }
 
     private static void instructionSub(String line, int lineNumber) {
@@ -274,15 +288,15 @@ public class Main {
                 else if (checkRegister(data[2]))
                     val2 = Register.registers.get(data[2]).getValue();
                 else {
-                    exitWithErrorMessage(lineNumber, Constants.MESSAGE_WRONG_SYNTAX);
+                    exitWithErrorMessage(lineNumber, Messages.MESSAGE_WRONG_SYNTAX);
                     return;
                 }
                 long result = val1 - val2;
                 Register.registers.get(data[1]).setValue(result, Constants.TYPE_NUMBER);
             } else
-                exitWithErrorMessage(lineNumber, Constants.MESSAGE_UNKNOWN_REGISTER);
+                exitWithErrorMessage(lineNumber, Messages.MESSAGE_UNKNOWN_REGISTER);
         } else
-            exitWithErrorMessage(lineNumber, Constants.MESSAGE_WRONG_SYNTAX);
+            exitWithErrorMessage(lineNumber, Messages.MESSAGE_WRONG_SYNTAX);
     }
 
     private static void instructionMul(String line, int lineNumber) {
@@ -298,15 +312,15 @@ public class Main {
                 else if (checkRegister(data[2]))
                     val2 = Register.registers.get(data[2]).getValue();
                 else {
-                    exitWithErrorMessage(lineNumber, Constants.MESSAGE_WRONG_SYNTAX);
+                    exitWithErrorMessage(lineNumber, Messages.MESSAGE_WRONG_SYNTAX);
                     return;
                 }
                 long result = val1 * val2;
                 Register.registers.get(data[1]).setValue(result, Constants.TYPE_NUMBER);
             } else
-                exitWithErrorMessage(lineNumber, Constants.MESSAGE_UNKNOWN_REGISTER);
+                exitWithErrorMessage(lineNumber, Messages.MESSAGE_UNKNOWN_REGISTER);
         } else
-            exitWithErrorMessage(lineNumber, Constants.MESSAGE_WRONG_SYNTAX);
+            exitWithErrorMessage(lineNumber, Messages.MESSAGE_WRONG_SYNTAX);
     }
 
     private static void instructionDiv(String line, int lineNumber) {
@@ -322,7 +336,7 @@ public class Main {
                 else if (checkRegister(data[2]))
                     val2 = Register.registers.get(data[2]).getValue();
                 else {
-                    exitWithErrorMessage(lineNumber, Constants.MESSAGE_WRONG_SYNTAX);
+                    exitWithErrorMessage(lineNumber, Messages.MESSAGE_WRONG_SYNTAX);
                     return;
                 }
                 long result = val1 / val2;
@@ -330,9 +344,9 @@ public class Main {
                 Register.registers.get(Register.REGISTER_DRE).setValue(result, Constants.TYPE_NUMBER);
                 Register.registers.get(Register.REGISTER_MOD).setValue(mod, Constants.TYPE_NUMBER);
             } else
-                exitWithErrorMessage(lineNumber, Constants.MESSAGE_UNKNOWN_REGISTER);
+                exitWithErrorMessage(lineNumber, Messages.MESSAGE_UNKNOWN_REGISTER);
         } else
-            exitWithErrorMessage(lineNumber, Constants.MESSAGE_WRONG_SYNTAX);
+            exitWithErrorMessage(lineNumber, Messages.MESSAGE_WRONG_SYNTAX);
     }
 
     private static void instructionAnd(String line, int lineNumber) {
@@ -348,15 +362,15 @@ public class Main {
                 else if (checkRegister(data[2]))
                     val2 = Register.registers.get(data[2]).getValue();
                 else {
-                    exitWithErrorMessage(lineNumber, Constants.MESSAGE_WRONG_SYNTAX);
+                    exitWithErrorMessage(lineNumber, Messages.MESSAGE_WRONG_SYNTAX);
                     return;
                 }
                 long result = val1 & val2;
                 Register.registers.get(data[1]).setValue(result, Constants.TYPE_NUMBER);
             } else
-                exitWithErrorMessage(lineNumber, Constants.MESSAGE_UNKNOWN_REGISTER);
+                exitWithErrorMessage(lineNumber, Messages.MESSAGE_UNKNOWN_REGISTER);
         } else
-            exitWithErrorMessage(lineNumber, Constants.MESSAGE_WRONG_SYNTAX);
+            exitWithErrorMessage(lineNumber, Messages.MESSAGE_WRONG_SYNTAX);
     }
 
     private static void instructionOr(String line, int lineNumber) {
@@ -372,15 +386,15 @@ public class Main {
                 else if (checkRegister(data[2]))
                     val2 = Register.registers.get(data[2]).getValue();
                 else {
-                    exitWithErrorMessage(lineNumber, Constants.MESSAGE_WRONG_SYNTAX);
+                    exitWithErrorMessage(lineNumber, Messages.MESSAGE_WRONG_SYNTAX);
                     return;
                 }
                 long result = val1 | val2;
                 Register.registers.get(data[1]).setValue(result, Constants.TYPE_NUMBER);
             } else
-                exitWithErrorMessage(lineNumber, Constants.MESSAGE_UNKNOWN_REGISTER);
+                exitWithErrorMessage(lineNumber, Messages.MESSAGE_UNKNOWN_REGISTER);
         } else
-            exitWithErrorMessage(lineNumber, Constants.MESSAGE_WRONG_SYNTAX);
+            exitWithErrorMessage(lineNumber, Messages.MESSAGE_WRONG_SYNTAX);
     }
 
     private static void instructionNot(String line, int lineNumber) {
@@ -393,9 +407,9 @@ public class Main {
                 long result = ~val;
                 Register.registers.get(data[1]).setValue(result, Constants.TYPE_NUMBER);
             } else
-                exitWithErrorMessage(lineNumber, Constants.MESSAGE_UNKNOWN_REGISTER);
+                exitWithErrorMessage(lineNumber, Messages.MESSAGE_UNKNOWN_REGISTER);
         } else
-            exitWithErrorMessage(lineNumber, Constants.MESSAGE_WRONG_SYNTAX);
+            exitWithErrorMessage(lineNumber, Messages.MESSAGE_WRONG_SYNTAX);
     }
 
     private static void instructionSfl(String line, int lineNumber) {
@@ -411,15 +425,15 @@ public class Main {
                 else if (checkRegister(data[2]))
                     val2 = Register.registers.get(data[2]).getValue();
                 else {
-                    exitWithErrorMessage(lineNumber, Constants.MESSAGE_WRONG_SYNTAX);
+                    exitWithErrorMessage(lineNumber, Messages.MESSAGE_WRONG_SYNTAX);
                     return;
                 }
                 long result = val1 << val2;
                 Register.registers.get(data[1]).setValue(result, Constants.TYPE_NUMBER);
             } else
-                exitWithErrorMessage(lineNumber, Constants.MESSAGE_UNKNOWN_REGISTER);
+                exitWithErrorMessage(lineNumber, Messages.MESSAGE_UNKNOWN_REGISTER);
         } else
-            exitWithErrorMessage(lineNumber, Constants.MESSAGE_WRONG_SYNTAX);
+            exitWithErrorMessage(lineNumber, Messages.MESSAGE_WRONG_SYNTAX);
     }
 
     private static void instructionSfr(String line, int lineNumber) {
@@ -435,15 +449,15 @@ public class Main {
                 else if (checkRegister(data[2]))
                     val2 = Register.registers.get(data[2]).getValue();
                 else {
-                    exitWithErrorMessage(lineNumber, Constants.MESSAGE_WRONG_SYNTAX);
+                    exitWithErrorMessage(lineNumber, Messages.MESSAGE_WRONG_SYNTAX);
                     return;
                 }
                 long result = val1 >> val2;
                 Register.registers.get(data[1]).setValue(result, Constants.TYPE_NUMBER);
             } else
-                exitWithErrorMessage(lineNumber, Constants.MESSAGE_UNKNOWN_REGISTER);
+                exitWithErrorMessage(lineNumber, Messages.MESSAGE_UNKNOWN_REGISTER);
         } else
-            exitWithErrorMessage(lineNumber, Constants.MESSAGE_WRONG_SYNTAX);
+            exitWithErrorMessage(lineNumber, Messages.MESSAGE_WRONG_SYNTAX);
     }
 
     private static void instructionMov(String line, int lineNumber) {
@@ -483,46 +497,145 @@ public class Main {
                                     sourceReg.getValueType()
                             );
                 } else
-                    exitWithErrorMessage(lineNumber, Constants.MESSAGE_WRONG_SYNTAX);
+                    exitWithErrorMessage(lineNumber, Messages.MESSAGE_WRONG_SYNTAX);
 
             } else if (checkVariable(data[1])) {
                 if (checkRegister(data[2])) {
                         memoryName.get(data[1]).setValue(Register.registers.get(data[2]).getBytes());
                 } else
-                    exitWithErrorMessage(lineNumber, Constants.MESSAGE_WRONG_SYNTAX);
+                    exitWithErrorMessage(lineNumber, Messages.MESSAGE_WRONG_SYNTAX);
 
             } else
-                    exitWithErrorMessage(lineNumber, Constants.MESSAGE_UNKNOWN_REGISTER);
+                    exitWithErrorMessage(lineNumber, Messages.MESSAGE_UNKNOWN_REGISTER);
         else
-            exitWithErrorMessage(lineNumber, Constants.MESSAGE_WRONG_SYNTAX);
+            exitWithErrorMessage(lineNumber, Messages.MESSAGE_WRONG_SYNTAX);
     }
 
     private static void instructionCmp(String line, int lineNumber) {
+        String[] data =
+                line.replace(" ", ",").replace(",,", ",").split(",");
 
+        if (data.length == 3) {
+            if (checkRegister(data[1])) {
+                long val1 = Register.registers.get(data[1]).getValue();
+                long val2;
+                if (numberPattern.matcher(data[2]).matches())
+                    val2 = Long.parseLong(data[2]);
+                else if (checkRegister(data[2]))
+                    val2 = Register.registers.get(data[2]).getValue();
+                else {
+                    exitWithErrorMessage(lineNumber, Messages.MESSAGE_WRONG_SYNTAX);
+                    return;
+                }
+                long result = Long.compare(val1, val2);
+                Register.registers.get(Register.REGISTER_FLG).setValue(result, Constants.TYPE_NUMBER);
+            } else
+                exitWithErrorMessage(lineNumber, Messages.MESSAGE_UNKNOWN_REGISTER);
+        } else
+            exitWithErrorMessage(lineNumber, Messages.MESSAGE_WRONG_SYNTAX);
     }
 
-    private static void instructionJe(String line, int lineNumber) {
+    private static int instructionJe(String line, int lineNumber) {
+        String[] data =
+                line.replace(" ", ",").replace(",,", ",").split(",");
 
+        if (data.length == 2) {
+            if (labels.containsKey(data[1])) {
+                long val = Register.registers.get(Register.REGISTER_FLG).getValue();
+                if (val == 0)
+                    return labels.get(data[1]);
+            } else
+                exitWithErrorMessage(lineNumber, Messages.MESSAGE_UNKNOWN_LABEL);
+        } else
+            exitWithErrorMessage(lineNumber, Messages.MESSAGE_WRONG_SYNTAX);
+
+        return lineNumber - 1;
     }
 
-    private static void instructionJne(String line, int lineNumber) {
+    private static int instructionJne(String line, int lineNumber) {
+        String[] data =
+                line.replace(" ", ",").replace(",,", ",").split(",");
 
+        if (data.length == 2) {
+            if (labels.containsKey(data[1])) {
+                long val = Register.registers.get(Register.REGISTER_FLG).getValue();
+                if (val != 0)
+                    return labels.get(data[1]);
+            } else
+                exitWithErrorMessage(lineNumber, Messages.MESSAGE_UNKNOWN_LABEL);
+        } else
+            exitWithErrorMessage(lineNumber, Messages.MESSAGE_WRONG_SYNTAX);
+
+        return lineNumber - 1;
     }
 
-    private static void instructionJge(String line, int lineNumber) {
+    private static int instructionJge(String line, int lineNumber) {
+        String[] data =
+                line.replace(" ", ",").replace(",,", ",").split(",");
 
+        if (data.length == 2) {
+            if (labels.containsKey(data[1])) {
+                long val = Register.registers.get(Register.REGISTER_FLG).getValue();
+                if (val >= 0)
+                    return labels.get(data[1]);
+            } else
+                exitWithErrorMessage(lineNumber, Messages.MESSAGE_UNKNOWN_LABEL);
+        } else
+            exitWithErrorMessage(lineNumber, Messages.MESSAGE_WRONG_SYNTAX);
+
+        return lineNumber - 1;
     }
 
-    private static void instructionJg(String line, int lineNumber) {
+    private static int instructionJg(String line, int lineNumber) {
+        String[] data =
+                line.replace(" ", ",").replace(",,", ",").split(",");
 
+        if (data.length == 2) {
+            if (labels.containsKey(data[1])) {
+                long val = Register.registers.get(Register.REGISTER_FLG).getValue();
+                if (val > 0)
+                    return labels.get(data[1]);
+            } else
+                exitWithErrorMessage(lineNumber, Messages.MESSAGE_UNKNOWN_LABEL);
+        } else
+            exitWithErrorMessage(lineNumber, Messages.MESSAGE_WRONG_SYNTAX);
+
+        return lineNumber - 1;
     }
 
-    private static void instructionJle(String line, int lineNumber) {
+    private static int instructionJle(String line, int lineNumber) {
+        String[] data =
+                line.replace(" ", ",").replace(",,", ",").split(",");
 
+        if (data.length == 2) {
+            if (labels.containsKey(data[1])) {
+                long val = Register.registers.get(Register.REGISTER_FLG).getValue();
+                if (val <= 0)
+                    return labels.get(data[1]);
+            } else
+                exitWithErrorMessage(lineNumber, Messages.MESSAGE_UNKNOWN_LABEL);
+        } else
+            exitWithErrorMessage(lineNumber, Messages.MESSAGE_WRONG_SYNTAX);
+
+        return lineNumber - 1;
     }
 
-    private static void instructionJl(String line, int lineNumber) {
+    private static int instructionJl(String line, int lineNumber) {
+        String[] data =
+                line.replace(" ", ",").replace(",,", ",").split(",");
 
+        if (data.length == 2) {
+            if (labels.containsKey(data[1])) {
+                long val = Register.registers.get(Register.REGISTER_FLG).getValue();
+                if (val < 0)
+                    return labels.get(data[1]);
+            }
+            else
+                exitWithErrorMessage(lineNumber, Messages.MESSAGE_UNKNOWN_LABEL);
+        } else
+            exitWithErrorMessage(lineNumber, Messages.MESSAGE_WRONG_SYNTAX);
+
+        return lineNumber - 1;
     }
 
     private static void instructionInp(String line, int lineNumber) {

@@ -33,9 +33,5 @@ public interface Constants {
     int EXIT_CODE_UNKNOWN_DATA_TYPE = 0x0002;
     int EXIT_CODE_WRONG_NUMBER_FORMAT = 0x0003;
 
-    String MESSAGE_WRONG_SYNTAX = "Wrong syntax";
-    String MESSAGE_WRONG_NUMBER_FORMAT = "Wrong number format";
-    String MESSAGE_UNKNOWN_DATA_TYPE = "Unknown data type";
-    String MESSAGE_UNKNOWN_INSTRUCTION = "Unknown instruction";
-    String MESSAGE_UNKNOWN_REGISTER = "Unknown register";
+
 }

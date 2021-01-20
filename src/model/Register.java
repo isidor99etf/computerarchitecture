@@ -11,6 +11,7 @@ public class Register {
     public static final String REGISTER_RDX = "rdx";
     public static final String REGISTER_DRE = "dre";
     public static final String REGISTER_MOD = "mod";
+    public static final String REGISTER_FLG = "flg";
 
     private final String name;
     private byte[] bytes;
@@ -27,6 +28,7 @@ public class Register {
         registers.put(REGISTER_RDX, new Register(REGISTER_RDX));
         registers.put(REGISTER_DRE, new Register(REGISTER_DRE));
         registers.put(REGISTER_MOD, new Register(REGISTER_MOD));
+        registers.put(REGISTER_FLG, new Register(REGISTER_FLG));
     }
 
     private Register(String name) {
