@@ -18,6 +18,7 @@ public class Instruction {
             InstructionType.INSTRUCTION_SFR,
             InstructionType.INSTRUCTION_MOV,
             InstructionType.INSTRUCTION_CMP,
+            InstructionType.INSTRUCTION_JMP,
             InstructionType.INSTRUCTION_JE,
             InstructionType.INSTRUCTION_JNE,
             InstructionType.INSTRUCTION_JGE,

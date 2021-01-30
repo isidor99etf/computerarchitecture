@@ -45,7 +45,7 @@ public class Register {
 
     public void setValue(byte[] bits, int valueType) {
         this.valueType = valueType;
-        this.bytes = bits;
+        this.bytes = ByteBuffer.allocate(8).put(bits).array();
     }
 
     public byte[] getBytes() { return bytes; }

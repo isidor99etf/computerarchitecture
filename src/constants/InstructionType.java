@@ -13,6 +13,7 @@ public interface InstructionType {
     String INSTRUCTION_SFR = "sfr";
     String INSTRUCTION_MOV = "mov";
     String INSTRUCTION_CMP = "cmp";
+    String INSTRUCTION_JMP = "jmp";
     String INSTRUCTION_JE = "je";
     String INSTRUCTION_JNE = "jne";
     String INSTRUCTION_JGE = "jge";

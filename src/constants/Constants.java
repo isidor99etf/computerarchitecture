@@ -6,22 +6,26 @@ public interface Constants {
     String TEXT_CODE = ":code";
     String TEXT_CONST = ":const";
 
-    String DATA_TYPE_INT = "resi";
-    String DATA_TYPE_LONG = "resl";
-    String DATA_TYPE_FLOAT = "resf";
-    String DATA_TYPE_DOUBLE = "resd";
-    String DATA_TYPE_CHAR = "resc";
+    String CONST_BYTE = "db";
+    String CONST_WORD = "dw";
+    String CONST_D_WORD = "dd";
+    String CONST_Q_WORD = "dq";
 
-    String CONST_DATA_TYPE_INT = "ci";
-    String CONST_DATA_TYPE_LONG = "cl";
-    String CONST_DATA_TYPE_FLOAT = "cf";
-    String CONST_DATA_TYPE_DOUBLE = "cd";
-    String CONST_DATA_TYPE_CHAR = "cc";
+    String RES_BYTE = "resb";
+    String RES_WORD = "resw";
+    String RES_D_WORD = "resd";
+    String RES_Q_WORD = "resq";
+
+    int SIZE_BYTE = 1;
+    int SIZE_WORD = 2;
+    int SIZE_D_WORD = 4;
+    int SIZE_Q_WORD = 8;
 
     int TYPE_NUMBER = 0x8893;
     int TYPE_ADDRESS = 0x8894;
 
     String TARGET_EXTENSION = ".arh";
+    String DEBUG_MODE_ARG = "-d";
 
     int SECTION_UNDEFINED = 0x00aa;
     int SECTION_CONST = 0x4534;

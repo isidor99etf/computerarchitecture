@@ -1,0 +1,18 @@
+:DEF
+    a resb
+    bb resd
+    r resw
+    fax resd
+    another resb
+:CODE
+    mov rax, -1
+    mov a, rax
+    sfl rax, 10
+    mov rcx, 100
+    add rax, rcx
+    mov bb, rax
+    mov rdx, [bb]
+    mov rbx, bb
+    mov [rbx], 64
+    mov rax, fax
+    mov [rax], rcx

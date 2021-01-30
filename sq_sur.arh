@@ -1,0 +1,7 @@
+:DEF
+    a resq
+:code
+    inp rax
+    mul rax, rax
+    mov a, rax
+    out rax

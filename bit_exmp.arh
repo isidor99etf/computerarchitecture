@@ -1,0 +1,21 @@
+:def
+    a resq
+    b resq
+:code
+    mov rax, 1
+    mov rbx, -1
+    and rbx, rax
+    mov a, rbx
+    mov rcx, 65536
+    mov rdx, 65536
+    sfl rcx, 2
+    sfr rdx, 2
+    mov b, rcx
+    and rcx, rax
+    or rcx, rdx
+    not rcx
+    sfl rcx, 16
+    or rcx, rdx
+    add rcx, rdx
+    add rcx, 16
+    sub rcx, 8
