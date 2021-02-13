@@ -231,6 +231,7 @@ public class Main {
     }
 
     // INSTRUCTION FUNCTIONS
+
     private static void instructionAdd(String line, int lineNumber) {
         String[] data =
                 line.replace(" ", ",").replace(",,", ",").split(",");
@@ -528,6 +529,9 @@ public class Main {
                     return;
                 }
                 long result = Long.compare(val1, val2);
+                // a value less than 0 if val1 < val2
+                // a value greater than 0 if val1 > val2
+                // 0 if val1 == val2
                 Register.registers.get(Register.REGISTER_FLG).setValue(result, Constants.TYPE_NUMBER);
             } else
                 exitWithErrorMessage(lineNumber, Messages.MESSAGE_UNKNOWN_REGISTER);

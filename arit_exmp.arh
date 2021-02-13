@@ -1,0 +1,19 @@
+:code
+    mov rax, 10
+    mov rbx, 7
+    add rax, rbx
+
+    mov rcx, 2
+    mov rdx, 16
+    div rdx, rcx
+    cmp mod, 1
+    je ok
+
+    div rax, rcx
+    cmp mod, 1
+    je ok
+
+    ok:
+    sub rax, 1
+    mul rax, 16
+    out rax

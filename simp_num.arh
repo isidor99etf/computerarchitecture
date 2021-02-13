@@ -1,6 +1,8 @@
 :code
     inp rax
+
     mov rcx, 2
+
     loop:
     div rax, rcx
     cmp mod, 0
@@ -10,11 +12,14 @@
     cmp rcx, dre
     jg yes
     jmp loop
+
     not:
     mov rdx, -1
     out rdx
     jmp end
+
     yes:
     mov rdx, 1
     out rdx
+
     end:

@@ -1,0 +1,30 @@
+:code
+    mov rax, 1
+    cmp rax, 0
+    jne not_equal
+
+    not_equal:
+        cmp rax, 1
+        jne not_equal
+        jle low_equal
+
+    low_equal:
+        sub rax, 10
+        out rax
+        cmp rax, 0
+        jge grt_eqaul
+        jl negative
+
+    grt_eqaul:
+        cmp rax, 1000
+        je negative
+
+    negative:
+        out rax
+        cmp rax, -100
+        jl negative
+        jg may_neg
+
+    may_neg:
+        mul rax, -3
+        out rax
